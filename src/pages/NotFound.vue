@@ -3,7 +3,7 @@
     <h1>404 - 页面未找到</h1>
     <p>抱歉，您访问的页面不存在。</p>
     <button @click="goHome">返回首页</button>
-    <button @click="goBack">返回上一页</button>
+    <button @click="goBack">返回</button>
   </div>
 </template>
 
