@@ -55,10 +55,11 @@ const routes = computed(() => {
 const bcRoutes = computed(() => {
     return routes.value.find(route => route.name === 'baichuan')?.children;
 });
-console.log('炉友们', router.options, route.path);
+console.log('路由', router.options, route.path);
 console.log('bcRoutes', bcRoutes.value);
 
 const transRoute = (path) => {
+    // 处理路由路径，空路径返回根路由，否则拼接前缀
     if (path === '') return '/baichuan';
     return '/baichuan/'+ path;
 }
