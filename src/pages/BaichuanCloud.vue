@@ -50,10 +50,10 @@ import { useRouter, useRoute } from 'vue-router';
 const router = useRouter();
 const route = useRoute();
 const routes = computed(() => {
-    return router.options.routes.filter(route => route.meta && route.meta.title);
+    return router.options.routes.filter(route => route.meta && route.meta.title);// 过滤出有标题的路由
 });
 const bcRoutes = computed(() => {
-    return routes.value.find(route => route.name === 'baichuan')?.children;
+    return routes.value.find(route => route.name === 'baichuan')?.children;// 获取百度云子路由
 });
 console.log('路由', router.options, route.path);
 console.log('bcRoutes', bcRoutes.value);

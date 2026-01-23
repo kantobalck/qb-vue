@@ -49,11 +49,11 @@ const routes = [
         name: 'carabout',
       },
       {
-        path: 'home',
-        name: 'home',
-        component: HelloWorld,
+        path: 'addcar',
+        name: 'addcar',
+        component: () => import('../components/AddCar.vue'),
         meta: {
-          title: '首页',
+          title: '新增车辆',
           requiresAuth: false,
           keepAlive: true
         }
