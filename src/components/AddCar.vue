@@ -1,39 +1,56 @@
 <template>
     <div class="vechicle-form">
-        <el-form ref="ruleFormRef" :v-model="form" label-width="200px" label-position="left" class="vechicle-form" status-icon>
+        <el-form 
+            ref="ruleFormRef" 
+            :model="form" 
+            label-width="200px" 
+            label-position="left"
+            class="vechicle-form" 
+            :rules="rules" 
+            status-icon>
             <!-- 车辆品牌选择 -->
-            <el-form-item label="车辆输入：" required>
+            <el-form-item label="车辆输入:" prop="vehicleInput" required>
                 <el-input v-model="form.vehicleInput" style="width: 350px;" placeholder="请输入车辆信息">
                 </el-input>
             </el-form-item>
             <!-- 首字母选择器 -->
-            <el-form-item label="首字母选择：" required>
+            <el-form-item label="首字母选择：" prop="selectedLetter" required>
                 <div class="letter-selector">
-                    <el-select v-model="form.selectedLetter" placeholder="请选择首字母" style="width: 350px;">
+                    <el-select 
+                        v-model="form.selectedLetter" 
+                        placeholder="请选择首字母" 
+                        
+                        style="width: 350px;"
+                        @change="handleLetterChange"
+                        clearable
+                        >
+                        
                         <el-option
-                            v-for="item in test"
+                            v-for="item in letterOptions"
                             :key="item.value"
                             :label="item.label"
-                            :value="item.value">
+                            :value="item.value"
+                            :disabled="item.disabled"
+                            >
                         </el-option>
                     </el-select>
                 </div>
             </el-form-item>
             <!-- 三级联选择器 -->
-            <el-form-item label="车型选择" required>
+            <el-form-item label="车型选择" prop="selectedCar" clearable required>
                 <div class="cascader-container">
                     <el-cascader 
                         v-model="form.selectedCar"
-                        :options="form.selectedCar"
+                        :options="vehicleData"
                         placeholder="请选择车牌-车系-车型"
-                        :props="props"
+                        :props="{expandTrigger: 'hover'}"
                         style="width: 350px;"
                         @change="handleCarChange"
                     />
                 </div>
             </el-form-item>
             <!-- 图片上传    -->
-            <el-form-item label="图片上传"  required>
+            <el-form-item label="图片上传" prop="images" required>
                 <el-upload 
                     class="avatar-uploader" 
                     action="https://jsonplaceholder.typicode.com/posts/"
@@ -42,8 +59,8 @@
                     accept=".jpg,.jpeg,.png,.gif,.webp"
                     :on-success="handleAvatarSuccess" 
                     :before-upload="beforeAvatarUpload"
+                    :on-change="handleUploadChage"
                     v-if ="showUpload"
-                    v-model="form.images"
                     >
 
                     <el-icon class="avatar-uploader-icon">
@@ -53,16 +70,27 @@
                         点击上传
                     </div>
                 </el-upload>
-                <div @click="reseUplond">
-                    <img v-if="form.images" :src="form.images" class="avatar" />
+                <div v-if="form.images" class="image-preview" @click="reseUplond">
+                    <img :src="form.images" class="avatar" />
+                    <div class="image-overlay">
+                        <el-icon><Delete /></el-icon>
+                        <span>点击删除</span>
+                    </div>
                 </div>
                 
             </el-form-item>
 
             <!-- 备注信息 -->
             <el-form-item label="备注信息（选填）">
-                <el-input type="textarea" :rows="4" v-model="form.remarks" placeholder="请输入备注信息" clearable>
-
+                <el-input 
+                    type="textarea" 
+                    :rows="4" 
+                    v-model="form.remarks" 
+                    placeholder="请输入备注信息" 
+                    clearable
+                    show-word-limit
+                    style="width: 350px;"
+                    >
                 </el-input>
             </el-form-item>
             <!-- 提交按钮 -->
@@ -70,45 +98,105 @@
                 <el-button 
                     type="primary" 
                     class="submit-button"
-                    @click="submitFrom(ruleFormRef)"
+                    @click="submitFrom"
+                    :loading="submitting"
                     >
                     确认添加
                 </el-button>
                 <el-button
                     class="reset-button"
                     @click="resetForm"    
+                    :disabled="submitting"
                 >
                     重置表单
                 </el-button>
             </el-form-item>
-            <!-- <el-form-item class="form-actions">
-                <el-button type="primary" @click="handleSubmit" :loading="submitting" :disabled="!isFormValid"
-                    size="large" class="submit-button">
-                    <el-icon>
-                        <Check />
-                    </el-icon>
-                    确认提交
-                </el-button>
-                <el-button @click="handleReset" :disabled="submitting" size="large" class="reset-button">
-                    <el-icon>
-                        <Refresh />
-                    </el-icon>
-                    重置表单
-                </el-button>
-            </el-form-item> -->
-
 
         </el-form>
     </div>
 </template>
 <script setup>
 
-import { ref,reactive, computed, watch, onMounted, onUnmounted } from 'vue';
-import { Search, Plus } from '@element-plus/icons-vue';
+import { ref,reactive, computed, onMounted } from 'vue';
+import {  Plus, Delete } from '@element-plus/icons-vue';
 import { ElMessage } from 'element-plus';
-import { test, letterOptions } from '../utils/vehicleData.js';
-const showUpload = ref(true);
-const ruleFormRef = ref();
+import {  
+    letterOptions,// 首字母选项
+    vehicleData,  // 车辆数据
+    getVehicleInfoByPath,          // 根据路径获取车辆信息
+    submittedVehicles,              // 已提交的车辆列表
+    saveVehicleToStorage,            // 保存车辆到本地存储
+    } from '../utils/vehicleData.js';
+
+
+const showUpload = ref(true);           // 控制图片上传显示
+const ruleFormRef = ref();          // 表单引用
+const submitting = ref(false);     // 提交状态
+
+// 表单数据结构
+const form = reactive({
+    vehicleInput: '',
+    selectedLetter: '',
+    selectedCar: [],
+    images: '',
+    remarks: '',
+})
+
+//表单验证规则
+const rules = {
+    vehicleInput: [
+        {required: true, message: '请输入车辆信息', trigger: 'blur'},
+        {min: 2, message: '车辆信息至少2个字符', trigger: 'blur'}
+    ],
+    selectedLetter: [
+        {required: true, message: '请选择首字母', trigger: 'change'}
+    ],
+    selectedCar: [
+        { required: true ,message: '请选择车型', trigger: 'change' }
+    ],
+    images: [
+        { required: true ,message: '请上传图片', trigger: 'change' }
+    ]
+};
+//根据首字母筛选数据
+// const filteredVehicleData = computed(() => {
+//     if(!vehicleData) return vehicleData;  // 未选择首字母时返回全部数据
+//     return vehicleData.filter(item => item.letter === form.selectedLetter)   // 筛选符合首字母的数据
+// })
+
+//  首字母变化处理
+// const handleLetterChange = (letter) => {
+//     //如果切换了首字母，清空已选择的车型
+//     if(letter && form.selectedCar.length > 0) {
+//         const currentBrand = vehicleData.find(item => item.value === form.selectedCar[0]);// 当前选择的品牌
+//         // 如果当前选择的品牌不属于新的首字母，清空选择
+//         if(currentBrand && currentBrand.letter !== letter) {
+//             form.selectedCar = [];
+//         }
+//     }
+// };
+
+//  车型选择变化处理  
+const handleCarChange = (value) => {
+    console.log('选择的车型路径：', value);
+    if(value && value.length === 3) {
+        const info = getVehicleInfoByPath(value);
+        console.log('选择的车型信息：', vehicleInfo);
+        if(info) {
+            form.vehicleInput = info.fullName;
+        }
+    }
+//自动设置首字母
+    if (!form.selectedLetter) {
+        const brand = vehicleData.find(item => item.value === value[0]);// 根据选择的品牌值查找品牌信息
+        if (brand) {
+            form.selectedLetter = brand.letter;  // 设置首字母
+    }
+    }
+};
+
+
+
 
 const props = {
     expandTrigger: 'hover' // 悬停展开子菜单
@@ -138,37 +226,30 @@ const reseUplond = () => {
     showUpload.value = true;
 }
 
-const form = reactive({
-    vehicleInput: '',
-    selectedLetter: '',
-    selectedCar: [{
-        value: 'guide',
-        label: 'Guide',
-        children: [
-            {
-                value: 'disciplines',
-                label: 'Disciplines',
-                children: [
-                    {
-                        value: 'consistency',
-                        label: 'Consistency',
-                    },
-                    
-                ],
-            },
-        ],
-    }],
-    images: '',
-    remarks: '',
-})
-
-//确认提交
-const submitFrom = async (formEl) => {
-    if (!formEl) return;
+// 表单提交处理函数
+const submitFrom = async () => {
+    if (!ruleFormRef.value) return;
+    submitting.value = true;
     try {
-        await formEl.validate();
-        console.log('提交的表单数据：', form);
+        // 验证表单
+        await ruleFormRef.value.validate();
+        const vehicleInfo = getVehicleInfoByPath(form.selectedCar); // 获取zan整车辆信息
+
+        const vehicleDataToSave = {
+            vehicleInput: form.vehicleInput,
+            selectedLetter: form.selectedLetter,
+            selectedCar: [...form.selectedCar],
+            images: form.images,
+            remarks: form.remarks,
+            vehicleInfo: vehicleInfo,
+        };
+        console.log('提交的车辆数据：', vehicleDataToSave);
+        submittedVehicles.value.push(vehicleDataToSave);  // 将提交的车辆数据添加到已提交列表
+        // 保存到本地存储
+        saveVehicleToStorage(vehicleDataToSave);
+        // 模拟异步提交操作
         ElMessage.success('表单提交成功！');
+        resetForm(); // 提交成功后重置表单
     } catch (error) {
         console.log('表单验证失败：', error);
         ElMessage.error('表单验证失败，请检查输入项！');
@@ -180,7 +261,9 @@ const resetForm = () => {
     if (ruleFormRef.value) {
         ruleFormRef.value.resetFields();
     }
+    form.selectedCar = [];
     form.images = '';
+    form.remarks = '';
     showUpload.value = true;
     ElMessage.success('表单已重置');
 };

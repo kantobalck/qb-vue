@@ -1,0 +1,21 @@
+//
+//1月28  
+<script setup>
+1.// 字母选择器：
+const hasBrand = Object.values(vehicleData).some(item => item.letter === letter)
+和
+const hasBrand = vehicleData.value.some(item => item.letter === letter) 
+区别是什么？
+什么情况用？对象什么时候用数组
+
+
+2.//根据首字母筛选数据   （复制--->addcar.vue 搜索定位）
+3.//首字母变化处理  
+一打开就白屏报错无法使用以及不会应用    
+这样就导致  我选   奥迪 首字母  和车型都不能对应  
+4.//自动设置首字母
+(没有任何反应)
+（想根据选的数据自动填选对应的首字母）
+
+
+</script>
