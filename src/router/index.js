@@ -33,7 +33,7 @@ const routes = [
     meta: {
       title: '百川页面',
       requiresAuth: true,
-      keepAlive: false
+      keepAlive: true
     },
     children: [
       {
@@ -43,10 +43,11 @@ const routes = [
         name: 'carinfor',
       },
       {
-        path: 'about',
-        component: () => import('../components/CarAbout.vue'),
-        meta: { title: '关于我们' },
-        name: 'carabout',
+        path: 'changecar/:carId?',
+        component: () => import('../components/ChangeCar.vue'),
+        meta: { title: '车辆更改' },
+        name: 'changecar',
+        props:true,
       },
       {
         path: 'addcar',

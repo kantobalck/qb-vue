@@ -1,4 +1,5 @@
 <template>
+    
     <div :class="['load-state', `${type}`, `${theme}`]">
         <!-- 根容器，动态绑定类名：面板类型和主题 -->
         <div class="top-box">

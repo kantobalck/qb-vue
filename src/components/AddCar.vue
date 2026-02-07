@@ -13,6 +13,11 @@
                 <el-input v-model="form.vehicleInput" style="width: 350px;" placeholder="请输入车辆信息">
                 </el-input>
             </el-form-item>
+            <!-- 报价 -->
+            <el-form-item label="车辆报价:" prop="price" required>
+                <el-input v-model="form.price" style="width: 350px;" placeholder="请输入车辆价格">
+                </el-input>
+            </el-form-item>
             <!-- 首字母选择器 -->
             <el-form-item label="首字母选择：" prop="selectedLetter" required>
                 <div class="letter-selector">
@@ -41,7 +46,7 @@
                 <div class="cascader-container">
                     <el-cascader 
                         v-model="form.selectedCar"
-                        :options="vehicleData"
+                        :options="filteredVehicleData"
                         placeholder="请选择车牌-车系-车型"
                         :props="{expandTrigger: 'hover'}"
                         style="width: 350px;"
@@ -110,6 +115,7 @@
                 >
                     重置表单
                 </el-button>
+                <span>length: {{filteredVehicleData.length}}</span>
             </el-form-item>
 
         </el-form>
@@ -120,6 +126,7 @@
 import { ref,reactive, computed, onMounted } from 'vue';
 import {  Plus, Delete } from '@element-plus/icons-vue';
 import { ElMessage } from 'element-plus';
+
 import {  
     letterOptions,// 首字母选项
     vehicleData,  // 车辆数据
@@ -128,6 +135,9 @@ import {
     saveVehicleToStorage,            // 保存车辆到本地存储
     } from '../utils/vehicleData.js';
 
+import {useCarStore} from '../store/store.js';
+
+const carStore = useCarStore();
 
 const showUpload = ref(true);           // 控制图片上传显示
 const ruleFormRef = ref();          // 表单引用
@@ -140,10 +150,15 @@ const form = reactive({
     selectedCar: [],
     images: '',
     remarks: '',
+    price: '',
 })
 
 //表单验证规则
 const rules = {
+    price: [
+        { required: true, message: '请输入车辆价格', trigger: 'blur' },
+        { pattern: /^\d+(\.\d{1,2})?$/, message: '请输入有效的价格，最多两位小数', trigger: 'blur' }
+    ], // 价格验证规则可以根据需要添加
     vehicleInput: [
         {required: true, message: '请输入车辆信息', trigger: 'blur'},
         {min: 2, message: '车辆信息至少2个字符', trigger: 'blur'}
@@ -159,10 +174,11 @@ const rules = {
     ]
 };
 //根据首字母筛选数据
-// const filteredVehicleData = computed(() => {
-//     if(!vehicleData) return vehicleData;  // 未选择首字母时返回全部数据
-//     return vehicleData.filter(item => item.letter === form.selectedLetter)   // 筛选符合首字母的数据
-// })
+const filteredVehicleData = computed(() => {
+    if(!form.selectedLetter) return vehicleData.value;  // 未选择首字母时返回全部数据
+    const res = vehicleData.value.filter(item => item.letter === form.selectedLetter)   // 筛选符合首字母的数据
+    return res;
+});
 
 //  首字母变化处理
 // const handleLetterChange = (letter) => {
@@ -181,29 +197,26 @@ const handleCarChange = (value) => {
     console.log('选择的车型路径：', value);
     if(value && value.length === 3) {
         const info = getVehicleInfoByPath(value);
-        console.log('选择的车型信息：', vehicleInfo);
-        if(info) {
-            form.vehicleInput = info.fullName;
-        }
+        console.log('选择的车型信息：', info);
+        // if(info) {
+        //     form.vehicleInput = info.fullName;   // 设置车辆输入框的值
+        // }
     }
-//自动设置首字母
+    //自动设置首字母
     if (!form.selectedLetter) {
         const brand = vehicleData.find(item => item.value === value[0]);// 根据选择的品牌值查找品牌信息
         if (brand) {
             form.selectedLetter = brand.letter;  // 设置首字母
-    }
+        }
     }
 };
-
-
-
 
 const props = {
     expandTrigger: 'hover' // 悬停展开子菜单
 };
 // 图片上传相关
 const imageUrl = ref('');
-const   handleAvatarSuccess = (response, uploadfile) => {
+const handleAvatarSuccess = (response, uploadfile) => {
     form.images = URL.createObjectURL(uploadfile.raw);
     showUpload.value = false;
     ElMessage.success('图片上传成功');
@@ -229,7 +242,7 @@ const reseUplond = () => {
 // 表单提交处理函数
 const submitFrom = async () => {
     if (!ruleFormRef.value) return;
-    submitting.value = true;
+    submitting.value = true;  // 设置提交状态为true
     try {
         // 验证表单
         await ruleFormRef.value.validate();
@@ -242,8 +255,22 @@ const submitFrom = async () => {
             images: form.images,
             remarks: form.remarks,
             vehicleInfo: vehicleInfo,
+
+            // 新增的字段
+            firstLetter: form.selectedLetter,
+            carId: Date.now(),
+            brand: form.selectedCar[0] || '车牌',
+            sevies: form.selectedCar[1] || '车系',
+            vehicle: form.selectedCar[2] || '车型',
+            carName: vehicleInfo?.fullName || '宝贵的车辆全称',
+            price: form.price + 'W'|| '价格',
+            imgUrl: form.images
         };
         console.log('提交的车辆数据：', vehicleDataToSave);
+        carStore.addCarList(vehicleDataToSave);
+
+        // vehicleDataToSave对标carList进行存入
+       // store.commit('addVehicleData', vehicleDataToSave);
         submittedVehicles.value.push(vehicleDataToSave);  // 将提交的车辆数据添加到已提交列表
         // 保存到本地存储
         saveVehicleToStorage(vehicleDataToSave);

@@ -19,6 +19,9 @@
                         搜索
                     </el-button>
                 </div>
+                <div style="margin-top: 40px">
+                    <span>当前页面总长度: {{carList.length}}</span>
+                </div>
             </div>
             <div class="car-right">
                 <dic class="content">
@@ -31,6 +34,7 @@
                             <span class="box-name"><span>车辆名称：</span>{{ item.brand }}</span>
                             <span class="box-name"><span>车辆系别：</span>{{ item.sevies }}</span>
                             <span class="box-name"><span>款式：</span>{{ item.vehicle }}</span>
+                            <button @click="handleEdit(item)" class="edit-button">修改</button>
                         </div>
                     </div>
                     <div
@@ -52,22 +56,38 @@
 </template>
 <script setup>
 import { ref, computed, onMounted, onBeforeMount} from 'vue'
-import { carList, zimuList } from '../utils/car.js'
 import { useRoute } from 'vue-router'
 
-const filteredCarList = ref([...carList]); // 过滤后的车辆列表
+import { zimuList } from '../utils/car.js';
+import {useCarStore} from '../store/store'
+import router from '../router/index.js';
+const carStore = useCarStore();
+
+const carList = computed(() => carStore.$state.carList || []);
+
+const filteredCarList = ref([...carList.value]); // 过滤后的车辆列表
 const letterName = ref(''); // 当前选中的字母名称
 const activeLetterIndex = ref(-1); // 当前选中的字母索引
 const isDetails = ref(false); // 
 const searchText = ref(''); // 搜索文本
 const currentPage = ref(1); // 当前页码
-const pageSize = 10;        // 每页显示条数
-const total = ref(carList.length); // 总数据量
+const pageSize = 10;       // 每页显示条数
+const total = ref(carList.value.length); // 总数据量
 
 // 监听搜索文本的变化，实时更新车辆列表
 const route = useRoute();
 
-carList.forEach(car => {
+const handleEdit = (car)  => {
+    router.push({
+        name: 'changecar',
+        params: {
+            carId: car.carId
+        }
+    })
+}
+
+
+carList.value.forEach(car => {
     const firstLetter = car.firstLetter.toUpperCase();
     const letterName = zimuList.find(item => item.firstLetter === firstLetter);
     if (letterName) {
@@ -89,10 +109,10 @@ const pageData = computed(() => {
 const handleSearch = () => {
     // 搜索文本为空时，显示所有数据
     if (searchText.value.trim() === '') {
-        filteredCarList.value = [...carList]; // 清空搜索时显示所有数据
+        filteredCarList.value = [...carList.value]; // 清空搜索时显示所有数据
     } else {
         const query = searchText.value.toLowerCase();// 转换为小写以便进行不区分大小写的匹配
-        filteredCarList.value = carList.filter(item =>
+        filteredCarList.value = carList.value.filter(item =>
             item.brand.toLowerCase().includes(query) ||
             item.sevies.toLowerCase().includes(query) ||
             item.vehicle.toLowerCase().includes(query)
@@ -102,7 +122,7 @@ const handleSearch = () => {
     currentPage.value = 1; // 重置页码
 };
 onMounted(() => {
-    total.value = carList.length;
+    total.value = carList.value.length;
 });
 // 选择字母的回调
 // 处理字母选择事件
@@ -119,11 +139,11 @@ const chooseLetter = (item, index) => {
 // const total = computed(() => filteredCarList.value.length)
 const handleFilter = () =>{
     if(!letterName.value){
-        filteredCarList.value = [...carList];// 如果没有选中字母，则显示所有车辆列表
+        filteredCarList.value = [...carList.value];// 如果没有选中字母，则显示所有车辆列表
     }else{
-        filteredCarList.value = carList.filter(item => item.firstLetter === letterName.value);// 过滤车辆列表
+        filteredCarList.value = carList.value.filter(item => item.firstLetter === letterName.value);// 过滤车辆列表
     }
-    total.value = filteredCarList.length;
+    total.value = filteredCarList.value.length;
     console.log('筛选结果2:', total);
 
     currentPage.value = 1;
@@ -247,7 +267,7 @@ const handleCurrentChange = (page) => {
 
                     .car-list {
                         width: 24%;
-                        height: 150px;
+                        height: 160px;
                         background-color: #efeeeb;
                         border-radius: 6px;
                         box-sizing: border-box;

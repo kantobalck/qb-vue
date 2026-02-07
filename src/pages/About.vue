@@ -109,11 +109,11 @@ const text = ref('按钮');
 
 const { back, close, getRoute } = useRouterUtils()
 
-const handleBack = () => {
+const handleBack = () => {// 返回上一页
   back()
 }
 
-const handleClose = () => {
+const handleClose = () => {   // 关闭当前页面
   close('/')
 }
 
