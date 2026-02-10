@@ -1,6 +1,5 @@
 <template>
     <div class="edit-car-container">
-        <h2>修改车辆信息</h2>
         <el-form ref="editFormRef" :model="form" :rules="rules" label-width="120px">
             <el-form-item label="车辆输入:" prop="vehicleInput" >
                 <el-input v-model="form.brand" style="width: 350px;" placeholder="请输入车辆信息">
@@ -77,7 +76,6 @@ const route = useRoute();
 const router = useRouter();
 const carStore = useCarStore();
 const showUpload = ref(true);
-const editFormRef = ref(); // 表单引用
 
 const form = ref({
     carId: null,
@@ -92,25 +90,25 @@ const form = ref({
     remarks: ''
 });
 // 表单验证
-const rules = {
-    brand: [
-        { required: true, message: '请输入车辆品牌', trigger: 'blur' },
-        { min: 2, message: '车辆品牌至少2个字符', trigger: 'blur' }
-    ],
-    price: [
-        { required: true, message: '请输入车辆价格', trigger: 'blur' },
-        { pattern: /^\d+(\.\d{1,2})?$/, message: '请输入有效的价格，最多两位小数', trigger: 'blur' }
-    ],
-    firstLetter: [
-        { required: true, message: '请选择首字母', trigger: 'change' }
-    ]
-};
+// const rules = {
+//     brand: [
+//         { required: true, message: '请输入车辆品牌', trigger: 'blur' },
+//         { min: 2, message: '车辆品牌至少2个字符', trigger: 'blur' }
+//     ],
+//     price: [
+//         { required: true, message: '请输入车辆价格', trigger: 'blur' },
+//         { pattern: /^\d+(\.\d{1,2})?$/, message: '请输入有效的价格，最多两位小数', trigger: 'blur' }
+//     ],
+//     firstLetter: [
+//         { required: true, message: '请选择首字母', trigger: 'change' }
+//     ]
+// };
 
 
 // 计算属性：根据首字母筛选数据
 const filteredVehicleData = computed(() => {
     if (!form.value.firstLetter) return vehicleData.value;
-    return vehicleData.value.filter(item => item.letter === form.value.firstLetter);
+    return vehicleData.value.filter(item => item.letter === form.value.firstLetter); // 根据首字母筛选数据
 });
 
 // 图片上传成功
@@ -148,13 +146,14 @@ const handleUploadChage = (file, fileList) => {
 // 车型选择变化
 const handleCarChange = (value) => {
     if (value && value.length === 3) {
-        const info = getVehicleInfoByPath(value);
+        const info = getVehicleInfoByPath(value);   // 根据路径获取车辆信息
         if (info) {
-            form.value.brand = info.brand;
-            form.value.sevies = info.series;
-            form.value.vehicle = info.model;
-            form.value.carName = info.fullName;
+            form.value.brand = info.brand;  // 更新品牌信息等字段
+            form.value.sevies = info.series;        // 更新车系信息等字段
+            form.value.vehicle = info.model;        // 更新车型信息等字段
+            form.value.carName = info.fullName;         // 更新车型全名等字段
         }
+        
     }
 };
 
@@ -176,14 +175,18 @@ onMounted(() => {
                 remarks: car.remarks || '',
                 selectedCar: [car.brand, car.sevies, car.vehicle]
             };
+            if (car.imgUrl) {
+                showUpload.value = false;
+            }
         }
+
     }
 });
 
 // 保存修改 - 改名为 saveChanges 避免冲突
 const saveChanges = () => {
     // 验证必填字段
-    if (!form.value.brand || !form.value.price || !form.value.firstLetter) {
+    if (!form.value.brand || !form.value.price || !form.value.firstLetter) {  
         ElMessage.error('请填写必填字段');
         return;
     }
@@ -206,11 +209,15 @@ const saveChanges = () => {
     console.log('车辆信息更新:', updatedCar);
     ElMessage.success('车辆信息更新成功');
 
-    // 强制刷新车辆列表页，确保数据更新显示
-    router.push({ 
+    // 使用 replace 而不是 push，并添加时间戳强制刷新
+    router.replace({ 
         name: 'baichuan',
-        query: { t: Date.now() } // 添加时间戳参数强制刷新
+        query: { refresh: Date.now() } // 添加时间戳参数强制刷新组件
     });
+    // router.push({ name: 'baichuan' }).then(() => {
+    //     // 然后强制刷新页面
+    //     router.go(0);
+    // });
 };
 </script>
 

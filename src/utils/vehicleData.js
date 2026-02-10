@@ -332,12 +332,12 @@ export const vehicleData = ref([{
             label: 'A6',
             children: [
                 {
-                    value: '2023款 40 TFSI 时尚动感型',
-                    label: '2023款 40 TFSI 时尚动感型'
+                    value: '2020款 40 TFSI 豪华动感型',
+                    label: '2020款 40 TFSI 豪华动感型'
                 },
                 {
-                    value: '2023款 45 TFSI 臻选动感型',
-                    label: '2023款 45 TFSI 臻选动感型'
+                    value: '2020款 40 TFSI 豪华动感型',
+                    label: '2020款 40 TFSI 豪华动感型'
                 },
             ]
         },
@@ -412,7 +412,7 @@ export function getVehicleInfoByPath(path){
     if (!modelData) return null; // 如果车型不存在，返回null
     
     return {
-        brand: brandItem.label,
+        brand: brandItem.label,   
         series: seriesData.label,
         model: modelData.label,
         fullName: `${brandItem.label} ${seriesData.label} ${modelData.label}`,// 完整名称

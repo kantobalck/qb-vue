@@ -99,10 +99,10 @@ onBeforeMount(() => {
     document.title = route.meta?.title || '车辆列表页面'
 })
 // 分页数据 自然的分页，实际上筛选后应该用的是筛选后的数据，这里用的是原始数据
-const pageData = computed(() => {
-    const start = (currentPage.value - 1) * pageSize;
-    const end = start + pageSize;
-    return filteredCarList.value.slice(start, end);
+const pageData = computed(() => {   // 计算当前页的数据
+    const start = (currentPage.value - 1) * pageSize;  // 计算当前页的起始索引
+    const end = start + pageSize;       // 计算当前页的结束索引
+    return filteredCarList.value.slice(start, end);  // 返回当前页的数据
 });
 
 //搜索方法
@@ -123,6 +123,13 @@ const handleSearch = () => {
 };
 onMounted(() => {
     total.value = carList.value.length;
+    
+    // 监听路由查询参数变化，当有 refresh 参数时重新加载数据
+    if (route.query.refresh) {
+        filteredCarList.value = [...carList.value];
+        total.value = filteredCarList.value.length;
+        currentPage.value = 1;
+    }
 });
 // 选择字母的回调
 // 处理字母选择事件
