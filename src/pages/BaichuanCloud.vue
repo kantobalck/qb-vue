@@ -25,8 +25,13 @@
 
                 </el-menu>
             </el-aside> -->
-            <el-menu router :default-active="$route.path" class="el-aside" background-color="#545c64"
-                text-color="#fff" active-text-color="#ffd04b">
+            <el-menu 
+                router 
+                :default-active="$route.path" 
+                class="el-aside" 
+                background-color="#545c64"
+                text-color="#fff" 
+                active-text-color="#ffd04b">
                     <!-- 一级菜单 -->
                 <el-menu-item
                     v-for="route in bcRoutes"

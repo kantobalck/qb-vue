@@ -59,7 +59,7 @@ import { ref, computed, onMounted, onBeforeMount} from 'vue'
 import { useRoute } from 'vue-router'
 
 import { zimuList } from '../utils/car.js';
-import {useCarStore} from '../store/store'
+import {useCarStore} from '../store/store';
 import router from '../router/index.js';
 const carStore = useCarStore();
 
@@ -85,7 +85,6 @@ const handleEdit = (car)  => {
         }
     })
 }
-
 
 carList.value.forEach(car => {
     const firstLetter = car.firstLetter.toUpperCase();

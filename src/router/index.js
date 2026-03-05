@@ -105,23 +105,25 @@ export const useRouterUtils = () => {
   
   const back = () => {
     router.back()
-  }
+  } // 返回上一页
   
   const go = (delta) => {
     router.go(delta)
   }
+  // 前进
+
   
   const push = (location) => {
     return router.push(location)
-  }
+  } // 跳转页面
   
   const replace = (location) => {
     return router.replace(location)
-  }
+  }// 替换页面
   
   const getRoute = () => {
     return router.currentRoute.value
-  }
+  }// 获取当前路由信息
   
   const getQuery = () => {
     return router.currentRoute.value.query
@@ -137,7 +139,7 @@ export const useRouterUtils = () => {
     } else {
       replace(fallbackPath)
     }
-  }
+  }  // 关闭当前页面
   
   return {
     back,

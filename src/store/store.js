@@ -530,9 +530,9 @@ export const useCarStore = defineStore('car', {
         },
         // 添加更新方法
         updateCar(updatedCar) {
-            const index = this.carList.findIndex(car => car.carId === updatedCar.carId);
+            const index = this.carList.findIndex(car => car.carId === updatedCar.carId);// 查找索引
             if (index !== -1) {
-                this.carList[index] = { ...this.carList[index], ...updatedCar };
+                this.carList[index] = { ...this.carList[index], ...updatedCar };   // 更新对象
             }
         },
 
