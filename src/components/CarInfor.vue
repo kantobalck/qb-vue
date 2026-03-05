@@ -111,12 +111,14 @@ const handleSearch = () => {
         filteredCarList.value = [...carList.value]; // 清空搜索时显示所有数据
     } else {
         const query = searchText.value.toLowerCase();// 转换为小写以便进行不区分大小写的匹配
+        // 根据搜索文本过滤车辆列表
         filteredCarList.value = carList.value.filter(item =>
             item.brand.toLowerCase().includes(query) ||
             item.sevies.toLowerCase().includes(query) ||
             item.vehicle.toLowerCase().includes(query)
-        );// 根据搜索文本过滤车辆列表
+        );
     }
+
     total.value = filteredCarList.value.length;
     currentPage.value = 1; // 重置页码
 };
