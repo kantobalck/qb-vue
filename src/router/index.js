@@ -22,10 +22,9 @@ const routes = [
       requiresAuth: true,
       keepAlive: false
     },
-    
-    
     // children
   },
+  // 百川云页面路由配置
   {
     path: '/baichuan',
     name: 'baichuan',

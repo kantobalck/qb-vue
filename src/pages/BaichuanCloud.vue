@@ -25,19 +25,20 @@
 
                 </el-menu>
             </el-aside> -->
-            <el-menu 
+            <el-menu
                 router 
                 :default-active="$route.path" 
                 class="el-aside" 
                 background-color="#545c64"
                 text-color="#fff" 
-                active-text-color="#ffd04b">
-                    <!-- 一级菜单 -->
+                active-text-color="#ffd04b"
+            >
+                <!-- 一级菜单 -->
                 <el-menu-item
                     v-for="route in bcRoutes"
                     :index="transRoute(route.path) || route.path"
                 >
-                    <span>{{ route.meta.title || '路由页面'}}</span>
+                    <span>{{ route.meta.title || '百川云'}}</span>
                 </el-menu-item>
                 <!-- </div> -->
             </el-menu>
@@ -52,14 +53,25 @@
 import { computed } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 
+/**
+ * 问题列表
+ * 1、 引入声明类放在一起，在最上方
+ * 2、 ref放在一起，放在逻辑最上方，计算属性等同性质的代码放在一起方便阅读
+ * 
+ */
+
 const router = useRouter();
 const route = useRoute();
+
+// 过滤出符合要求的路由对象
 const routes = computed(() => {
-    return router.options.routes.filter(route => route.meta && route.meta.title);// 过滤出有标题的路由
+    return router.options.routes.filter(route => route.meta && route.meta.title);
 });
+// 获取百川云下路由匹配：建议一个逻辑or处理不要拆开2个计算属性或者方法，此处简化处理
 const bcRoutes = computed(() => {
     return routes.value.find(route => route.name === 'baichuan')?.children;// 获取百度云子路由
 });
+
 console.log('路由', router.options, route.path);
 console.log('bcRoutes', bcRoutes.value);
 

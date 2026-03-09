@@ -1,48 +1,37 @@
 <template>
     <div class="car-box">
-        <div class="car-active" v-if="!isDetails">
+        <div class="car-active">
             <div class="car-left">
                 <!-- 字母选择器 -->
-                    <div class="car-letter">
-                        <span v-for="(item, index) in zimuList" :key="index" @click="chooseLetter(item, index)"
-                            class="letter-index"
-                            :class="[activeLetterIndex === index ? 'letter-active' : '', item.count <= 0 ? 'disabled' : '']"
-                            :disabled="item.count <= 0">
-                            {{ item.firstLetter }}
-                        </span>
-                    </div>
-                
+                <Letter
+                    :zimuList="zimuList"
+                    @chooseLetter="chooseLetter"
+                />
                 <!-- 搜索框 -->
-                <div class="search-box">
-                    <el-input v-model="searchText" placeholder="请输入搜索关键词" clearable />
-                    <el-button class="search-btn" type="primary" @click="handleSearch">
-                        搜索
-                    </el-button>
-                </div>
-                <div style="margin-top: 40px">
-                    <span>当前页面总长度: {{carList.length}}</span>
-                </div>
+                <SearchBox
+                    @handle-search="handleSearch"
+                />
             </div>
             <div class="car-right">
                 <dic class="content">
-                    <div class="car-box-box" v-if="pageData && pageData.length > 0">
+                    <div
+                        v-if="pageData && pageData.length > 0"
+                        class="car-box-box"
+                    >
                         <div class="car-list" :data ="pageData" v-for="(item, index) in pageData" :key="index">
-                            <div class="filter-model" :style="{ 'background-image': 'url(' + item.imgUrl + ')' }">
+                            <div>
+                                <Cards 
+                                    :item="item"
+                                    @handle-edit="handleEdit"
+                                />
                             </div>
-                            <!-- <div class="filter-model" :style="{ 'background-image': url(`${item.imgUrl}` )}">
-                            </div> -->
-                            <span class="box-name"><span>车辆名称：</span>{{ item.brand }}</span>
-                            <span class="box-name"><span>车辆系别：</span>{{ item.sevies }}</span>
-                            <span class="box-name"><span>款式：</span>{{ item.vehicle }}</span>
-                            <button @click="handleEdit(item)" class="edit-button">修改</button>
                         </div>
                     </div>
-                    <div
+                    <NoData
                         v-else
                         class="no-car-box"
-                    >
-                        <span class="no-car">暂无车辆信息</span>
-                    </div>
+                    />
+                    <!-- 分页 -->
                     <div class="pagination-container">
                         <el-pagination @size-change="handleSizeChange" @current-change="handleCurrentChange"
                             :current-page="currentPage" :page-size="pageSize" layout="total prev, pager, next, jumper"
@@ -57,35 +46,35 @@
 <script setup>
 import { ref, computed, onMounted, onBeforeMount} from 'vue'
 import { useRoute } from 'vue-router'
-
 import { zimuList } from '../utils/car.js';
-import {useCarStore} from '../store/store';
+import {useCarStore} from '../store/store.js';
 import router from '../router/index.js';
+
+import SearchBox from './InfoComponents/SearchBox/index.vue';
+import Letter from './InfoComponents/Letter/index.vue';
+import Cards from './InfoComponents/Cards/index.vue';
+import NoData from './InfoComponents/NoData/index.vue';
+
 const carStore = useCarStore();
-
-const carList = computed(() => carStore.$state.carList || []);
-
-const filteredCarList = ref([...carList.value]); // 过滤后的车辆列表
-const letterName = ref(''); // 当前选中的字母名称
-const activeLetterIndex = ref(-1); // 当前选中的字母索引
-const isDetails = ref(false); // 
-const searchText = ref(''); // 搜索文本
-const currentPage = ref(1); // 当前页码
-const pageSize = 10;       // 每页显示条数
-const total = ref(carList.value.length); // 总数据量
-
 // 监听搜索文本的变化，实时更新车辆列表
 const route = useRoute();
 
-const handleEdit = (car)  => {
-    router.push({
-        name: 'changecar',
-        params: {
-            carId: car.carId
-        }
-    })
-}
+const carList = computed(() => carStore.$state.carList || []);
+// 分页数据 自然的分页，实际上筛选后应该用的是筛选后的数据，这里用的是原始数据
+const pageData = computed(() => {   // 计算当前页的数据
+    const start = (currentPage.value - 1) * pageSize;  // 计算当前页的起始索引
+    const end = start + pageSize;       // 计算当前页的结束索引
+    return filteredCarList.value.slice(start, end);  // 返回当前页的数据
+});
 
+const pageSize = 10;       // 每页显示条数
+const filteredCarList = ref([...carList.value]); // 过滤后的车辆列表
+const letterName = ref(''); // 当前选中的字母名称
+const activeLetterIndex = ref(-1); // 当前选中的字母索引
+const currentPage = ref(1); // 当前页码
+const total = ref(carList.value.length); // 总数据量
+
+// 初始化获取字母列表每项的count数量
 carList.value.forEach(car => {
     const firstLetter = car.firstLetter.toUpperCase();
     const letterName = zimuList.find(item => item.firstLetter === firstLetter);
@@ -94,23 +83,23 @@ carList.value.forEach(car => {
     }
 });
 
-onBeforeMount(() => {
-    document.title = route.meta?.title || '车辆列表页面'
-})
-// 分页数据 自然的分页，实际上筛选后应该用的是筛选后的数据，这里用的是原始数据
-const pageData = computed(() => {   // 计算当前页的数据
-    const start = (currentPage.value - 1) * pageSize;  // 计算当前页的起始索引
-    const end = start + pageSize;       // 计算当前页的结束索引
-    return filteredCarList.value.slice(start, end);  // 返回当前页的数据
-});
+const handleEdit = item  => {
+    router.push({
+        name: 'changecar',
+        params: {
+            carId: item.carId
+        }
+    })
+}
 
-//搜索方法
-const handleSearch = () => {
+// 搜索方法：子组件传事件，父组件处理
+const handleSearch = text => {
     // 搜索文本为空时，显示所有数据
-    if (searchText.value.trim() === '') {
+    if (text.trim() === '') {
         filteredCarList.value = [...carList.value]; // 清空搜索时显示所有数据
-    } else {
-        const query = searchText.value.toLowerCase();// 转换为小写以便进行不区分大小写的匹配
+    }
+    else {
+        const query = text.toLowerCase();// 转换为小写以便进行不区分大小写的匹配
         // 根据搜索文本过滤车辆列表
         filteredCarList.value = carList.value.filter(item =>
             item.brand.toLowerCase().includes(query) ||
@@ -122,21 +111,14 @@ const handleSearch = () => {
     total.value = filteredCarList.value.length;
     currentPage.value = 1; // 重置页码
 };
-onMounted(() => {
-    total.value = carList.value.length;
-    
-    // 监听路由查询参数变化，当有 refresh 参数时重新加载数据
-    if (route.query.refresh) {
-        filteredCarList.value = [...carList.value];
-        total.value = filteredCarList.value.length;
-        currentPage.value = 1;
-    }
-});
 // 选择字母的回调
 // 处理字母选择事件
-const chooseLetter = (item, index) => {
+const chooseLetter = data => {
+    const { item, index } = data;
     // 若字母数量为0，则直接返回
-    if (item.count <= 0) return;
+    if (item.count <= 0) {
+        return;
+    }
     // 设置当前选中的字母名称
     letterName.value = item.firstLetter;
     // 设置当前激活的字母索引
@@ -144,7 +126,7 @@ const chooseLetter = (item, index) => {
     // 根据选中的字母过滤车辆列表
     handleFilter();
 };
-// const total = computed(() => filteredCarList.value.length)
+
 const handleFilter = () =>{
     if(!letterName.value){
         filteredCarList.value = [...carList.value];// 如果没有选中字母，则显示所有车辆列表
@@ -157,10 +139,24 @@ const handleFilter = () =>{
     currentPage.value = 1;
     console.log('筛选结果:', letterName.value, filteredCarList.value);
 };
+
 // 页码变化时的回调
 const handleCurrentChange = (page) => {
     currentPage.value = page;
 };
+
+onBeforeMount(() => {
+    document.title = route.meta?.title || '车辆列表页面'
+});
+onMounted(() => {
+    total.value = carList.value.length;
+    // 监听路由查询参数变化，当有 refresh 参数时重新加载数据
+    if (route.query.refresh) {
+        filteredCarList.value = [...carList.value];
+        total.value = filteredCarList.value.length;
+        currentPage.value = 1;
+    }
+});
 // 远程分页（结合接口）‌：
 // const fetchData = async (page) => {
 //     const res = await axios.get(`/api/data?page=${page}&size=${pageSize.value}`);

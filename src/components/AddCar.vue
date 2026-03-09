@@ -1,5 +1,13 @@
 <template>
     <div class="vechicle-form">
+
+        <!-- <FromInfo 
+            :pageType="pageType"
+            :vehicleData="vehicleData"
+            :letterOptions="letterOptions"
+            :formData="form"
+        /> -->
+
         <el-form 
             ref="ruleFormRef" 
             :model="form" 
@@ -8,28 +16,25 @@
             class="vechicle-form" 
             :rules="rules" 
             status-icon>
-            <!-- 车辆品牌选择 -->
             <el-form-item label="车辆输入:" prop="vehicleInput" required>
                 <el-input v-model="form.vehicleInput" style="width: 350px;" placeholder="请输入车辆信息">
                 </el-input>
             </el-form-item>
-            <!-- 报价 -->
+
             <el-form-item label="车辆报价:" prop="price" required>
                 <el-input v-model="form.price" style="width: 350px;" placeholder="请输入车辆价格">
                 </el-input>
             </el-form-item>
-            <!-- 首字母选择器 -->
+
             <el-form-item label="首字母选择：" prop="selectedLetter" required>
                 <div class="letter-selector">
                     <el-select 
                         v-model="form.selectedLetter" 
                         placeholder="请选择首字母" 
-                        
                         style="width: 350px;"
                         @change="handleLetterChange"
                         clearable
                         >
-                        
                         <el-option
                             v-for="item in letterOptions"
                             :key="item.value"
@@ -41,7 +46,8 @@
                     </el-select>
                 </div>
             </el-form-item>
-            <!-- 三级联选择器 -->
+
+
             <el-form-item label="车型选择" prop="selectedCar" clearable required>
                 <div class="cascader-container">
                     <el-cascader 
@@ -54,7 +60,8 @@
                     />
                 </div>
             </el-form-item>
-            <!-- 图片上传    -->
+
+
             <el-form-item label="图片上传" prop="images" required>
                 <el-upload 
                     class="avatar-uploader" 
@@ -85,7 +92,7 @@
                 
             </el-form-item>
 
-            <!-- 备注信息 -->
+
             <el-form-item label="备注信息（选填）">
                 <el-input 
                     type="textarea" 
@@ -98,7 +105,8 @@
                     >
                 </el-input>
             </el-form-item>
-            <!-- 提交按钮 -->
+
+
              <el-form-item class="form-actions" >
                 <el-button 
                     type="primary" 
@@ -115,7 +123,6 @@
                 >
                     重置表单
                 </el-button>
-                <span>length: {{filteredVehicleData.length}}</span>
             </el-form-item>
 
         </el-form>
@@ -126,6 +133,8 @@
 import { ref,reactive, computed, onMounted } from 'vue';
 import {  Plus, Delete } from '@element-plus/icons-vue';
 import { ElMessage } from 'element-plus';
+
+import FromInfo from './InfoComponents/FromInfo/index.vue';
 
 import {  
     letterOptions,// 首字母选项
@@ -142,10 +151,11 @@ const carStore = useCarStore();
 const showUpload = ref(true);           // 控制图片上传显示
 const ruleFormRef = ref();          // 表单引用
 const submitting = ref(false);     // 提交状态
+const pageType = ref('add');          // 页面类型，默认为添加页面
 
 // 表单数据结构
 const form = reactive({
-    vehicleInput: '',
+    vehicleInput: 'aaaa',
     selectedLetter: '',
     selectedCar: [],
     images: '',
@@ -173,6 +183,7 @@ const rules = {
         { required: true ,message: '请上传图片', trigger: 'change' }
     ]
 };
+
 //根据首字母筛选数据
 const filteredVehicleData = computed(() => {
     if(!form.selectedLetter) return vehicleData.value;  // 未选择首字母时返回全部数据
@@ -246,7 +257,7 @@ const submitFrom = async () => {
     try {
         // 验证表单
         await ruleFormRef.value.validate();
-        const vehicleInfo = getVehicleInfoByPath(form.selectedCar); // 获取zan整车辆信息
+        const vehicleInfo = getVehicleInfoByPath(form.selectedCar); // 获取整车辆信息
 
         const vehicleDataToSave = {
             vehicleInput: form.vehicleInput,

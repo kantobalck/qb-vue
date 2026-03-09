@@ -544,10 +544,9 @@ export const useCarStore = defineStore('car', {
             }
         }
     }
-  
 });
+
 export const letterOptions = computed(() => {  // 生成字母选项
-    // console.log('这是字母格式', letterOptions)
     return Array.from({ length: 26 }, (_, i) => {   // A-Z 26个字母
         const letter = String.fromCharCode(65 + i)   // 获取字母
         const hasBrand = vehicleData.value.some(item => item.letter === letter)  // 检查是否有品牌以该字母开头
@@ -557,7 +556,6 @@ export const letterOptions = computed(() => {  // 生成字母选项
             // disabled: !hasBrand
         }
     })
-
 });
 
 
