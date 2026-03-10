@@ -1,14 +1,18 @@
 <template>
     <div class="vechicle-form">
 
-        <!-- <FromInfo 
+        <FromInfo 
+            ref="ruleFormRef"
             :pageType="pageType"
             :vehicleData="vehicleData"
             :letterOptions="letterOptions"
             :formData="form"
-        /> -->
+            :beforeAvatarUpload="beforeAvatarUpload"
+            @handle-submit="handleSubmit"
+        />
 
-        <el-form 
+        
+        <!-- <el-form 
             ref="ruleFormRef" 
             :model="form" 
             label-width="200px" 
@@ -125,7 +129,7 @@
                 </el-button>
             </el-form-item>
 
-        </el-form>
+        </el-form> -->
     </div>
 </template>
 <script setup>
@@ -151,17 +155,46 @@ const carStore = useCarStore();
 const showUpload = ref(true);           // 控制图片上传显示
 const ruleFormRef = ref();          // 表单引用
 const submitting = ref(false);     // 提交状态
-const pageType = ref('add');          // 页面类型，默认为添加页面
+const pageType = ref('add');          // 页面类型，默认为添加页面 edit页面会传入'edit'
+const imageUrl = ref('');
 
+const props = {
+    expandTrigger: 'hover' // 悬停展开子菜单
+};
+
+//根据首字母筛选数据
+const filteredVehicleData = computed(() => {
+    if(!form.selectedLetter) return vehicleData.value;  // 未选择首字母时返回全部数据
+    const res = vehicleData.value.filter(item => item.letter === form.selectedLetter)   // 筛选符合首字母的数据
+    return res;
+});
 // 表单数据结构
 const form = reactive({
-    vehicleInput: 'aaaa',
+    vehicleInput: ' ',
     selectedLetter: '',
     selectedCar: [],
     images: '',
     remarks: '',
     price: '',
-})
+});
+
+const handleCarChange = (value) => {
+    console.log('选择的车型路径：', value);
+    if(value && value.length === 3) {
+        const info = getVehicleInfoByPath(value);
+        console.log('选择的车型信息：', info);
+        // if(info) {
+        //     form.vehicleInput = info.fullName;   // 设置车辆输入框的值
+        // }
+    }
+    //自动设置首字母
+    if (!form.selectedLetter) {
+        const brand = vehicleData.find(item => item.value === value[0]);// 根据选择的品牌值查找品牌信息
+        if (brand) {
+            form.selectedLetter = brand.letter;  // 设置首字母
+        }
+    }
+};
 
 //表单验证规则
 const rules = {
@@ -184,13 +217,6 @@ const rules = {
     ]
 };
 
-//根据首字母筛选数据
-const filteredVehicleData = computed(() => {
-    if(!form.selectedLetter) return vehicleData.value;  // 未选择首字母时返回全部数据
-    const res = vehicleData.value.filter(item => item.letter === form.selectedLetter)   // 筛选符合首字母的数据
-    return res;
-});
-
 //  首字母变化处理
 // const handleLetterChange = (letter) => {
 //     //如果切换了首字母，清空已选择的车型
@@ -204,29 +230,8 @@ const filteredVehicleData = computed(() => {
 // };
 
 //  车型选择变化处理  
-const handleCarChange = (value) => {
-    console.log('选择的车型路径：', value);
-    if(value && value.length === 3) {
-        const info = getVehicleInfoByPath(value);
-        console.log('选择的车型信息：', info);
-        // if(info) {
-        //     form.vehicleInput = info.fullName;   // 设置车辆输入框的值
-        // }
-    }
-    //自动设置首字母
-    if (!form.selectedLetter) {
-        const brand = vehicleData.find(item => item.value === value[0]);// 根据选择的品牌值查找品牌信息
-        if (brand) {
-            form.selectedLetter = brand.letter;  // 设置首字母
-        }
-    }
-};
 
-const props = {
-    expandTrigger: 'hover' // 悬停展开子菜单
-};
 // 图片上传相关
-const imageUrl = ref('');
 const handleAvatarSuccess = (response, uploadfile) => {
     form.images = URL.createObjectURL(uploadfile.raw);
     showUpload.value = false;
@@ -244,20 +249,37 @@ const beforeAvatarUpload = (File) => {
     }
     return true;
 }
+// 3.9新增  
+//监听表单提交事件（从按钮组件传来）
+const handleSubmit = async(data) => {
+    console.log('表单校验成功了-更新数据-push数据', data);
+    carStore.addCarList(data);
+    submitFrom(data);
+};
+
+const handleReset = () => {
+    if (ruleFormRef.value) {
+        ruleFormRef.value.resetFields();
+    }
+}
+defineExpose({
+    handleSubmit,
+    handleReset
+});
+
 // 图片上传重置
 const reseUplond = () => {
     form.images = '';
     showUpload.value = true;
 }
-
 // 表单提交处理函数
-const submitFrom = async () => {
+const submitFrom = async (form) => {
     if (!ruleFormRef.value) return;
     submitting.value = true;  // 设置提交状态为true
     try {
         // 验证表单
-        await ruleFormRef.value.validate();
-        const vehicleInfo = getVehicleInfoByPath(form.selectedCar); // 获取整车辆信息
+        await ruleFormRef.value.validate(); // 验证表单，如果通过则继续执行后续操作
+        const vehicleInfo = getVehicleInfoByPath(form.resetFields); // 获取整车辆信息
 
         const vehicleDataToSave = {
             vehicleInput: form.vehicleInput,
@@ -293,7 +315,6 @@ const submitFrom = async () => {
         ElMessage.error('表单验证失败，请检查输入项！');
     }
 };
-
 //重置表单
 const resetForm = () => {
     if (ruleFormRef.value) {

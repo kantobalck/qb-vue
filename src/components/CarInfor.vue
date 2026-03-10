@@ -11,6 +11,7 @@
                 <SearchBox
                     @handle-search="handleSearch"
                 />
+                <span>长度: {{carList.length}}</span>
             </div>
             <div class="car-right">
                 <dic class="content">
@@ -31,6 +32,7 @@
                         v-else
                         class="no-car-box"
                     />
+                
                     <!-- 分页 -->
                     <div class="pagination-container">
                         <el-pagination @size-change="handleSizeChange" @current-change="handleCurrentChange"
@@ -44,7 +46,7 @@
     </div>
 </template>
 <script setup>
-import { ref, computed, onMounted, onBeforeMount} from 'vue'
+import { ref, computed, onMounted, onBeforeMount, watch} from 'vue'
 import { useRoute } from 'vue-router'
 import { zimuList } from '../utils/car.js';
 import {useCarStore} from '../store/store.js';
@@ -82,6 +84,11 @@ carList.value.forEach(car => {
         letterName.count += 1;
     }
 });
+
+watch(carList, (newList) => {
+    // 每当carList变化时，重新计算字母列表的count数量
+    console.log('carList变化了', newList);
+}, { deep: true });
 
 const handleEdit = item  => {
     router.push({

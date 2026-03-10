@@ -524,6 +524,7 @@ export const useCarStore = defineStore('car', {
         }
         ],
     }),
+    // 方法，一般用于修改数据
     actions: {
         addCarList(payload) {
             this.carList.push(payload);
@@ -542,7 +543,7 @@ export const useCarStore = defineStore('car', {
             if (index !== -1) {
                 this.carList.splice(index, 1);
             }
-        }
+        },
     }
 });
 

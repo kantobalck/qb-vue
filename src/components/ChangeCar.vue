@@ -72,11 +72,8 @@ import {
     getVehicleInfoByPath,
 } from '../utils/vehicleData.js';
 
-const route = useRoute();
-const router = useRouter();
-const carStore = useCarStore();
-const showUpload = ref(true);
 
+const showUpload = ref(true);
 const form = ref({
     carId: null,
     firstLetter: '',
@@ -89,6 +86,16 @@ const form = ref({
     images: '',
     remarks: ''
 });
+
+// 计算属性：根据首字母筛选数据
+const filteredVehicleData = computed(() => {
+    if (!form.value.firstLetter) return vehicleData.value;
+    return vehicleData.value.filter(item => item.letter === form.value.firstLetter); // 根据首字母筛选数据
+});
+
+const route = useRoute();
+const router = useRouter();
+const carStore = useCarStore();
 // 表单验证
 // const rules = {
 //     brand: [
@@ -105,11 +112,7 @@ const form = ref({
 // };
 
 
-// 计算属性：根据首字母筛选数据
-const filteredVehicleData = computed(() => {
-    if (!form.value.firstLetter) return vehicleData.value;
-    return vehicleData.value.filter(item => item.letter === form.value.firstLetter); // 根据首字母筛选数据
-});
+
 
 // 图片上传成功
 const handleAvatarSuccess = (response, uploadfile) => {
@@ -156,33 +159,6 @@ const handleCarChange = (value) => {
         
     }
 };
-
-// 初始化表单数据
-onMounted(() => {
-    if (route.params.carId) {
-        const carId = route.params.carId;
-        const car = carStore.carList.find(item => item.carId == carId);
-        if (car) {
-            form.value = {
-                carId: car.carId,
-                firstLetter: car.firstLetter,
-                brand: car.brand,
-                sevies: car.sevies,
-                vehicle: car.vehicle,
-                carName: car.carName,
-                price: car.price,
-                images: car.imgUrl,
-                remarks: car.remarks || '',
-                selectedCar: [car.brand, car.sevies, car.vehicle]
-            };
-            if (car.imgUrl) {
-                showUpload.value = false;
-            }
-        }
-
-    }
-});
-
 // 保存修改 - 改名为 saveChanges 避免冲突
 const saveChanges = () => {
     // 验证必填字段
@@ -219,6 +195,34 @@ const saveChanges = () => {
     //     router.go(0);
     // });
 };
+
+// 初始化表单数据
+onMounted(() => {
+    if (route.params.carId) {
+        const carId = route.params.carId;
+        const car = carStore.carList.find(item => item.carId == carId);
+        if (car) {
+            form.value = {
+                carId: car.carId,
+                firstLetter: car.firstLetter,
+                brand: car.brand,
+                sevies: car.sevies,
+                vehicle: car.vehicle,
+                carName: car.carName,
+                price: car.price,
+                images: car.imgUrl,
+                remarks: car.remarks || '',
+                selectedCar: [car.brand, car.sevies, car.vehicle]
+            };
+            if (car.imgUrl) {
+                showUpload.value = false;
+            }
+        }
+
+    }
+});
+
+
 </script>
 
 <style scoped>
