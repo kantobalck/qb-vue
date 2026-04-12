@@ -25,22 +25,20 @@
 
                 </el-menu>
             </el-aside> -->
+            <!-- 
+                :default-active="route.path === '/baichuan' ? '/baichuan' : route.path" 
+            -->
             <el-menu
-                router 
-                :default-active="$route.path" 
-                class="el-aside" 
+                router
+                :default-active="activeMenu"
+                class="el-aside"
                 background-color="#545c64"
                 text-color="#fff" 
                 active-text-color="#ffd04b"
             >
-                <!-- 一级菜单 -->
-                <el-menu-item
-                    v-for="route in bcRoutes"
-                    :index="transRoute(route.path) || route.path"
-                >
-                    <span>{{ route.meta.title || '百川云'}}</span>
+                <el-menu-item v-for="route in bcRoutes" :index="transRoute(route.path)" :key="route.name">
+                    <span>{{ route.meta.title || '百川云' }}</span>
                 </el-menu-item>
-                <!-- </div> -->
             </el-menu>
 
             <el-main class="main-content">
@@ -67,18 +65,35 @@ const route = useRoute();
 const routes = computed(() => {
     return router.options.routes.filter(route => route.meta && route.meta.title);
 });
-// 获取百川云下路由匹配：建议一个逻辑or处理不要拆开2个计算属性或者方法，此处简化处理
-const bcRoutes = computed(() => {
-    return routes.value.find(route => route.name === 'baichuan')?.children;// 获取百度云子路由
+
+const baichuanParent = computed(() => {
+    return routes.value.find(route => route.name === 'baichuan');
 });
 
-console.log('路由', router.options, route.path);
-console.log('bcRoutes', bcRoutes.value);
+// 获取百川云下路由匹配：建议一个逻辑or处理不要拆开2个计算属性或者方法，此处简化处理
+const bcRoutes = computed(() => {
+    // return routes.value.find(route => route.name === 'baichuan')?.children;// 获取百度云子路由
+    return baichuanParent.value?.children;// 0412
+});
+
+// 动态匹配 0412
+const activeMenu = computed(() => {
+    for (const child of bcRoutes.value) {
+        const menuIndex = transRoute(child.path);
+        console.log('child.path', child, child.path, menuIndex);
+        const isActive = route.matched.some(r => r.name === child.name);
+        if (isActive) {
+            return menuIndex;
+        }
+    }
+    return '/baichuan'; // 默认选中父菜单
+});
 
 const transRoute = (path) => {
     // 处理路由路径，空路径返回根路由，否则拼接前缀
     if (path === '') return '/baichuan';
-    return '/baichuan/'+ path;
+    const result =  '/baichuan/'+ path;
+    return result;
 }
 </script>
 

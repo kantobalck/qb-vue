@@ -380,7 +380,6 @@ export const vehicleData = ref([{
 // 字母选择器  65是A的ASCII码 65+i 就是A-Z的ASCII码 
 // 生成A-Z的字母选项 检查是否有品牌以该字母开头有的话启用选项否则禁用选项
 export const letterOptions = computed(() => {  // 生成字母选项
-    // console.log('这是字母格式', letterOptions)
     return Array.from({ length: 26 }, (_, i) => {   // A-Z 26个字母
         const letter = String.fromCharCode(65 + i)   // 获取字母
         const hasBrand = vehicleData.value.some(item => item.letter === letter)  // 检查是否有品牌以该字母开头
@@ -390,18 +389,17 @@ export const letterOptions = computed(() => {  // 生成字母选项
             // disabled: !hasBrand
         }
     })
-
 });
 
 export const submittedVehicles = ref([]); // 存储所有提交的车信息
 
 //   【获取车辆完整信息】
-export function getVehicleInfoByPath(path){
-    if (!path || path.length !== 3) {
+export function getVehicleInfoByPath(data){
+    if (!data || data.length !== 3) {
         return null; // 如果路径无效，返回null
     }
     
-    const [brand, series, model] = path;    // 解构路径数组
+    const [brand, series, model] = data;    // 解构路径数组
     const brandItem = vehicleData.value.find(item => item.value === brand); // 查找品牌
     if (!brandItem) return null; // 如果品牌不存在，返回null
 
@@ -426,6 +424,8 @@ export function saveVehicleToStorage(vehicle) {
         const savedVehicles = JSON.parse(localStorage.getItem('savedVehicles')) || [];
         savedVehicles.push(vehicle);
         localStorage.setItem('savedVehicles', JSON.stringify(savedVehicles));
+        console.log('保存车辆信息到本地存储:', vehicle, localStorage.getItem('savedVehicles'));
+
     }catch (error) {
         console.error('保存车辆信息到本地存储时出错:', error);
     }

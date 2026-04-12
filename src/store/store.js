@@ -529,11 +529,11 @@ export const useCarStore = defineStore('car', {
         addCarList(payload) {
             this.carList.push(payload);
         },
-        // 添加更新方法
-        updateCar(updatedCar) {
-            const index = this.carList.findIndex(car => car.carId === updatedCar.carId);// 查找索引
+        // 修改数据：① 先查找对应数据 ② 修改其中参数
+        updateCar(payload) {
+            const index = this.carList.findIndex(car => car.carId === payload.carId);// 查找索引
             if (index !== -1) {
-                this.carList[index] = { ...this.carList[index], ...updatedCar };   // 更新对象
+                this.carList[index] = { ...this.carList[index], ...payload };   // 更新对象
             }
         },
 
@@ -546,20 +546,6 @@ export const useCarStore = defineStore('car', {
         },
     }
 });
-
-export const letterOptions = computed(() => {  // 生成字母选项
-    return Array.from({ length: 26 }, (_, i) => {   // A-Z 26个字母
-        const letter = String.fromCharCode(65 + i)   // 获取字母
-        const hasBrand = vehicleData.value.some(item => item.letter === letter)  // 检查是否有品牌以该字母开头
-        return {// 返回选项对象
-            value: letter,  //
-            label: letter,
-            // disabled: !hasBrand
-        }
-    })
-});
-
-
 
 // 组件使用方式
 // import { useVehicleStore } from '@/store/store';

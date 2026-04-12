@@ -24,6 +24,16 @@ const routes = [
     },
     // children
   },
+  {
+    path: '/ai-printer',
+    name: 'ai-printer',
+    component: () => import('../pages/AiPrinter.vue'),
+    meta: {
+      title: 'AI打印机页面',
+      requiresAuth: true,
+      keepAlive: false
+    }
+  },
   // 百川云页面路由配置
   {
     path: '/baichuan',
@@ -46,7 +56,7 @@ const routes = [
         component: () => import('../components/ChangeCar.vue'),
         meta: { title: '车辆更改' },
         name: 'changecar',
-        props:true,
+        props: true,
       },
       {
         path: 'addcar',
